@@ -1996,6 +1996,18 @@ public class DynamoDbJsonHandler {
     private Response handleEnableKinesisStreamingDestination(JsonNode request, String region) {
         String tableName = request.path("TableName").asText();
         String streamArn = request.path("StreamArn").asText();
+        JsonNode precisionNode = request.path("EnableKinesisStreamingConfiguration")
+                .path("ApproximateCreationDateTimePrecision");
+        String precision = precisionNode.isMissingNode() || precisionNode.isNull()
+                ? KinesisStreamingDestination.PRECISION_MILLISECOND : precisionNode.asText();
+        if (!KinesisStreamingDestination.PRECISION_MILLISECOND.equals(precision)
+                && !KinesisStreamingDestination.PRECISION_MICROSECOND.equals(precision)) {
+            throw new AwsException("ValidationException",
+                    "1 validation error detected: Value '" + precision
+                            + "' at 'enableKinesisStreamingConfiguration.approximateCreationDateTimePrecision' "
+                            + "failed to satisfy constraint: Member must satisfy enum value set: [MILLISECOND, MICROSECOND]",
+                    400);
+        }
 
         TableDefinition table = dynamoDbService.describeTable(tableName, region);
         String resolvedTableName = table.getTableName();
@@ -2017,8 +2029,9 @@ public class DynamoDbJsonHandler {
         if (existing.isPresent()) {
             existing.get().setDestinationStatus("ACTIVE");
             existing.get().setDestinationStatusDescription("Kinesis streaming is enabled for this table");
+            existing.get().setApproximateCreationDateTimePrecision(precision);
         } else {
-            table.getKinesisStreamingDestinations().add(new KinesisStreamingDestination(streamArn));
+            table.getKinesisStreamingDestinations().add(new KinesisStreamingDestination(streamArn, precision));
         }
 
         if (!table.isStreamEnabled()) {
@@ -2036,6 +2049,8 @@ public class DynamoDbJsonHandler {
         response.put("StreamArn", streamArn);
         response.put("DestinationStatus", "ACTIVE");
         response.put("DestinationStatusDescription", "Kinesis streaming is enabled for this table");
+        response.putObject("EnableKinesisStreamingConfiguration")
+                .put("ApproximateCreationDateTimePrecision", precision);
         return Response.ok(response).build();
     }
 

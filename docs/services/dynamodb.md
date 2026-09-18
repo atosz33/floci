@@ -209,6 +209,12 @@ When a table has an **ACTIVE** Kinesis streaming destination (see
 including TTL expirations, is forwarded to the destination stream as a Kinesis record in the
 AWS CDC envelope (`eventName`, `dynamodb.Keys`, `NewImage`/`OldImage`, `ApproximateCreationDateTime`).
 
+`ApproximateCreationDateTime` follows the destination's
+`EnableKinesisStreamingConfiguration.ApproximateCreationDateTimePrecision`: epoch milliseconds for
+`MILLISECOND` (the default) and epoch microseconds for `MICROSECOND`. The precision is returned by
+`DescribeKinesisStreamingDestination` and stamped on each record as
+`dynamodb.ApproximateCreationDateTimePrecision`.
+
 ### Delivery contract
 
 Forwarding is **bounded best-effort with in-process retry**. A write is never blocked or failed by
