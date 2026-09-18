@@ -215,6 +215,9 @@ AWS CDC envelope (`eventName`, `dynamodb.Keys`, `NewImage`/`OldImage`, `Approxim
 `DescribeKinesisStreamingDestination` and stamped on each record as
 `dynamodb.ApproximateCreationDateTimePrecision`.
 
+Enabling a Kinesis streaming destination does not change the table's DynamoDB Streams setting.
+Kinesis forwarding works whether or not `StreamSpecification.StreamEnabled` is set.
+
 ### Delivery contract
 
 Forwarding is **bounded best-effort with in-process retry**. A write is never blocked or failed by
