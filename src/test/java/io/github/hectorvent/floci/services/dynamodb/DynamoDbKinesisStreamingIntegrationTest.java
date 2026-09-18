@@ -474,7 +474,7 @@ class DynamoDbKinesisStreamingIntegrationTest {
 
     @Test
     @Order(40)
-    void enableAutoEnablesStreamsIfDisabled() {
+    void enableLeavesDynamoDbStreamsDisabled() {
         given()
             .header("X-Amz-Target", "DynamoDB_20120810.CreateTable")
             .contentType(DYNAMODB_CONTENT_TYPE)
@@ -511,7 +511,8 @@ class DynamoDbKinesisStreamingIntegrationTest {
             .post("/")
         .then()
             .statusCode(200)
-            .body("Table.StreamSpecification.StreamEnabled", equalTo(true));
+            .body("Table.StreamSpecification.StreamEnabled", not(equalTo(true)))
+            .body("Table.LatestStreamArn", nullValue());
     }
 
     @Test
